@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 import openpyxl
 
+
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'stl', 'step', 'stp', 'f3d', 'obj'}
@@ -101,18 +102,18 @@ def index():
 </head>
 <body>
   <div class="form-container">
-    <h1>양식 작성</h1>
+    <h1>3D프린팅 출력 요청</h1>
     <form method="post" enctype="multipart/form-data" action="/submit">
-      <label for="width">가로 길이:</label>
+      <label for="width">가로 길이(mm):</label>
       <input type="text" name="width" id="width">
 
-      <label for="height">세로 길이:</label>
+      <label for="height">세로 길이(mm):</label>
       <input type="text" name="height" id="height">
 
-      <label for="depth">높이:</label>
+      <label for="depth">높이(mm):</label>
       <input type="text" name="depth" id="depth">
 
-      <label for="weight">파트 무게:</label>
+      <label for="weight">파트 무게(g):</label>
       <input type="text" name="weight" id="weight">
 
       <label for="material">소재:</label>
@@ -121,11 +122,18 @@ def index():
       <label for="purpose">용도:</label>
       <input type="text" name="purpose" id="purpose">
 
+      <label for="description">파트 설명:</label>
+      <textarea name="description" id="description" rows="6" style="width: 100%;"></textarea>
+
       <label for="image1">파일 첨부 1(STL, STEP 등 3D 설계파일):</label>
       <input type="file" name="image1" id="image1" required>
 
       <label for="image2">파일 첨부 2(JPG, PNG 등 파트 사진 - 선택사항):</label>
       <input type="file" name="image2" id="image2">
+
+      <label for="date">회의 요청 날짜:</label>
+      <input type="date" name="date" id="date"> 
+
 
       <input type="submit" value="제출">
     </form>
@@ -143,8 +151,10 @@ def submit():
     weight = request.form.get('weight')
     material = request.form.get('material')
     purpose = request.form.get('purpose')
+    description = request.form.get('description')
     image1 = request.files['image1']
     image2 = request.files.get('image2')
+    date = request.form.get('date')
 
     filename1 = secure_filename(image1.filename)
     image1.save(os.path.join(app.config['UPLOAD_FOLDER'], filename1))
@@ -168,18 +178,24 @@ def submit():
     sheet['D1'] = '현재 파트 무게(g)'
     sheet['E1'] = '현재 소재'
     sheet['F1'] = '용도'
-    sheet['G1'] = '파일명'
+    sheet['G1'] = '파트 설명'
+    sheet['H1'] = '파일명'
+    #sheet['H1'] = '파일명2'
+    sheet['J1'] = '미팅 날짜'
     sheet['A2'] = width
     sheet['B2'] = height
     sheet['C2'] = depth
     sheet['D2'] = weight
     sheet['E2'] = material
     sheet['F2'] = purpose
-    sheet['G2'] = filename1
+    sheet['G2'] = description
+    sheet['H2'] = filename1 
+    #sheet['H2'] = filename2
+    sheet['J2'] = date 
  
     if filename2:
-      sheet['H1'] = '파일명'
-      sheet['H2'] = filename2
+      sheet['I1'] = '파일명'
+      sheet['I2'] = filename2
 
 
     excel_filename = f"{filename1}.xlsx"
@@ -197,5 +213,13 @@ def list_uploads():
     files = os.listdir(app.config['UPLOAD_FOLDER'])
     return jsonify(files)
 
+#if __name__ == '__main__':
+#    app.run(host='localhost', port=8000)
+#if __name__ == "__main__":
+#    app.run(host="127.0.0.1")
+
+#if __name__ == "__main__":
+#    uvicorn.run("main:app", host="127.0.0.1")
+
 if __name__ == '__main__':
-    app.run(host='localhost', port=8000)
+    app.run(host='0.0.0.0', port=9997, ssl_context=('cert.pem', 'key.pem'))
